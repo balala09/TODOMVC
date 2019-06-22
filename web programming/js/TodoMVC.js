@@ -27,7 +27,7 @@ window.onload = function () {
     model.init(function () {
 
         //网页刷新后用来重新渲染页面；
-        initial("slide_delete");
+        initial("slideDeleteBox");
 
         //为一些按钮添加点击事件（如搜索按钮）
         var search_box = document.querySelector("#search");
@@ -65,6 +65,7 @@ function initial(div_name) {
             produce_list(div_name,i);
             get_slide(i);
         }
+        // get_slide();
     }
 }
 
@@ -336,120 +337,132 @@ function close() {
     model.set_place();
     pop.remove();
 }
-
 function get_slide(i) {
     var obj = {
         move: 0,
-        startpoint: 0,
-        X: 0,
-        init: function () {
+        startTouchSite: 0,
+        disX: 0,
+        init: function(){
             var winWidth = $(window).width();
-            var delWidth = 100;
+            var delWidth = $("#slideDeleteBox .del").css("width");
             var sumWidth = winWidth + parseInt(delWidth);
-            $(".touch-box").css("width", sumWidth + 'px');
-            $(".touch").css("width", winWidth + 'px');
+
+            $(".touch-box").css("width",sumWidth+'px');
+            $(".touch").css("width",winWidth+'px');
+
             obj.bindEvent();
             return obj;
         },
-        bindEvent: function () {
-            // if (!obj.isPC()) {
-                document.getElementsByClassName('touch-box')[i].addEventListener('touchstart', function (event) {
-                    //如果存在event,那么var e=event;而如果不存在event，那么var e=window.event
-                    var e = event || window.event;
-                    //阻止元素发生默认的行为
-                    e.preventDefault();
-                    //阻止任何父事件处理程序被执行
-                    e.stopPropagation();
-                    //获取触摸点相对于文档的左边缘的距离
-                    var touchPosition = e.targetTouches[0];
-                    var touch_x = touchPosition.pageX;
+        bindEvent: function(){
+            if(!obj.isPC()) {
+                    document.getElementsByClassName('touch-box')[i].addEventListener('touchstart', function (event) {
+                        var e = event || window.event;
+                            e.preventDefault();
+                            e.stopPropagation();
 
-                    //获取元素的左偏移
-                    var offsetLeft = $(this).offset().left;
+                        var touchPosition = e.targetTouches[0];
+                        var touch_x = touchPosition.pageX;
+                        var offsetLeft = $(this).offset().left;
 
-                    //算出偏移的距离
-                    obj.move = 0;
-                    obj.startpoint = touch_x;
-                    obj.X = touch_x - offsetLeft;
+                        obj.move = 0;
+                        obj.startTouchSite = touch_x;
+                        obj.disX = touch_x - offsetLeft;
 
-                    //初始的时候默认放在left=0的位置
-                    $(".open").each(function () {
-                        if ($(this).css('left') !== "0px") {
-                            $(this).animate({
-                                'left': '0'
-                            }, 300);
-                        }
-                    });
-
-                    if ($(this).css('left') === '-100px') {
-                        $(this).animate({
-                            'left': '0'
-                        }, 300, function () {
-                            if (!$(this).is(":animated")) {
-                                var offsetLeft = $(this).offset().left;
-                                obj.X = touch_x - offsetLeft;
+                        $(".open").each(function () {
+                            if ($(this).css('left') !== "0px") {
+                                $(this).animate({'left': '0'}, 300);
                             }
                         });
+
+                        if ($(this).css('left') === '-100px') {
+                            $(this).animate({'left': '0'}, 300, function () {
+                                if (!$(this).is(":animated")) {
+                                    var offsetLeft = $(this).offset().left;
+                                    obj.disX = touch_x - offsetLeft;
+                                }
+                            });
+                        }
+                    }, {passive: false});
+
+                    document.getElementsByClassName('touch-box')[i].addEventListener('touchmove', function (event) {
+                        var e = event || window.event;
+                            e.preventDefault();
+                            e.stopPropagation();
+
+                        var touchPosition = e.targetTouches[0];
+                        var touch_x = touchPosition.pageX;
+                        var left = $(this).css('left');
+                        $('.touch-box').eq(i).stop();
+
+                        obj.move = touch_x - obj.disX;
+
+                        if (touch_x < obj.startTouchSite && obj.move < 0 && obj.move >= -100) {
+                            $(this).css('left', obj.move + 'px');
+                        } else if (touch_x > obj.startTouchSite && obj.move < 0 && obj.move >= -100) {
+                            $(this).css('left', obj.move + 'px');
+                        }
+                    }, {passive: false});
+
+                    document.getElementsByClassName('touch-box')[i].addEventListener('touchend', function (event) {
+                        var e = event || window.event;
+                            e.preventDefault();
+                            e.stopPropagation();
+
+                        if (obj.move < -50) {
+                            $(this).animate({'left': '-100px'}, 300);
+                            $(this).addClass('open');
+                        } else {
+                            $(this).animate({'left': '0'}, 300);
+                            $(this).removeClass('open');
+                        }
+                    }, {passive: false});
+
+                    document.getElementsByClassName('del')[i].addEventListener('touchstart', function (event) {
+                        var e = event || window.event;
+                            e.preventDefault();
+                            e.stopPropagation();
+
+                        var touch = e.targetTouches[0];
+
+                        self.delTouchStartX = touch.pageX;
+                        delete_todo(this.classList[1]);
+                        return false;
+                    }, {passive: false});
+            }else{
+                $(document).on("dblclick", ".touch", function () {
+                    var left = $(this).parent().css('left');
+
+                    $(".open").animate({'left': '0'}, 300, function () {
+                        $(this).removeClass("open");
+                    });
+
+                    if(left === '-100px'){
+                        $(this).parent().animate({'left': '0'}, 300);
+                    }else{
+                        $(this).parent().animate({'left': '-100px'}, 300, function(){
+                            $(this).addClass('open');
+                        });
                     }
-                }, {
-                    passive: false
-                });
-                //点住滑动的时候
-                document.getElementsByClassName('touch-box')[i].addEventListener('touchmove', function (event) {
-                    var e = event || window.event;
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    var touchPosition = e.targetTouches[0];
-                    var touch_x = touchPosition.pageX;
-                    var left = $(this).css('left');
-                    $('.touch-box').eq(i).stop();
-
-                    obj.move = touch_x - obj.disX;
-
-                    if (touch_x < obj.startpoint && obj.move < 0 && obj.move >= -100) {
-                        $(this).css('left', obj.move + 'px');
-                    } else if (touch_x > obj.startpoint && obj.move < 0 && obj.move >= -100) {
-                        $(this).css('left', obj.move + 'px');
-                    }
-                }, {
-                    passive: false
                 });
 
-                document.getElementsByClassName('touch-box')[i].addEventListener('touchend', function (event) {
-                    var e = event || window.event;
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    if (obj.move < -50) {
-                        $(this).animate({
-                            'left': '-100px'
-                        }, 300);
-                        $(this).addClass('open');
-                    } else {
-                        $(this).animate({
-                            'left': '0'
-                        }, 300);
-                        $(this).removeClass('open');
-                    }
-                }, {
-                    passive: false
-                });
-                document.getElementsByClassName('del')[i].addEventListener('touchstart', function (event) {
-                    var e = event || window.event;
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    var touch = e.targetTouches[0];
-
-                    self.delTouchStartX = touch.pageX;
-                    console.log("huadong" + this.className[1]);
-                    delete_todo(this.classList[1]);
+                $(document).on("click", ".del", function () {
+                    console.log('PC删除请求');
                     return false;
-                }, {
-                    passive: false
                 });
+            }
         },
+        isPC: function(){
+            var userAgentInfo = navigator.userAgent;
+            var agents = ["Android", "iPhone", "SymbianOS", "Windows Phone", "iPad", "iPod"];
+            var flag = true;
+            for (var i = 0; i < agents.length; i++) {
+                if (userAgentInfo.indexOf(agents[i]) > 0) {
+                    flag = false;
+                    break;
+                }
+            }
+            return flag;
+        }
     };
     window.slideDelete = new obj.init();
 };
@@ -522,7 +535,7 @@ function show_completed() {
 
     //获取所有list的checkbox的状态，若完成则加入显示列表中
     document.getElementsByTagName("section")[0].appendChild(complete_div);
-    var parents = document.getElementById("slide_delete").getElementsByClassName("list-box");
+    var parents = document.getElementById("slideDeleteBox").getElementsByClassName("list-box");
     for (var i = 0; i < parents.length; i++) {
         var input = parents[i].getElementsByClassName("touch-box")[0].getElementsByClassName("touch")[0].getElementsByTagName("input")[0].checked;
         if (input) {
@@ -543,7 +556,7 @@ function show_remain() {
     var remain_div = document.createElement("div");
     remain_div.id = "remain_pop";
     document.getElementsByTagName("section")[0].appendChild(remain_div);
-    var parents = document.getElementById("slide_delete").getElementsByClassName('list-box');
+    var parents = document.getElementById("slideDeleteBox").getElementsByClassName('list-box');
     for (var i = 0; i < parents.length; i++) {
         var input = parents[i].getElementsByClassName("touch-box")[0].getElementsByClassName("touch")[0].getElementsByTagName("input")[0].checked;
         if (!input) {
@@ -561,7 +574,7 @@ function show_remain() {
 //展示主页面
 function show_all() {
     clear_other();
-    document.getElementById("slide_delete").style.display = "block";
+    document.getElementById("slideDeleteBox").style.display = "block";
 }
 
 //搜索关键字
@@ -708,7 +721,7 @@ function uncomplete_all() {
 
 //删除已完成
 function delete_complete() {
-    var checkbox = document.getElementById('slide_delete').getElementsByTagName("input");
+    var checkbox = document.getElementById('slideDeleteBox').getElementsByTagName("input");
     console.log(checkbox.length)
     // var num = 0;
      //获取所有的list，若状态为完成，调用删除函数删除并更新存储的数据；
@@ -726,7 +739,7 @@ function delete_complete() {
 
 //清除可能存在的窗口
 function clear_other() {
-    document.getElementById("slide_delete").style.display = "none";
+    document.getElementById("slideDeleteBox").style.display = "none";
     if (document.getElementById("completed_pop") != null)
         document.getElementById("completed_pop").remove();
     if (document.getElementById("remain_pop") != null)
