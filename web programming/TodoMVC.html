@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport"
+        content="width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0,user-scalable=no">
+    <link href="css/TodoMVC.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script src="js/model.js"></script>
+    <script src="js/provider-localStorage.js"></script>
+    <script src="js/TodoMVC.js"></script>
+    <title>TodoMVC</title>
+</head>
+
+<body>
+    <div id="main" class="main">
+        <button id="btn"></button>
+        <!--侧边栏div-->
+        <div id="side">
+            <aside class="sidebox" id="test" style="margin-left:-300px">
+                <h1>What needs to be done?</h1>
+                <div id="title">
+                    <input id="input_title" type="text" placeholder="Outline" autofocus>
+                </div>
+                <div id="time">
+                    <p class="select_time">Select Time</p>
+                    <input id="start_time" type="date" value="2019-06-19" />
+                    <p id="arrow">⬇️</p>
+                    <input type="date" id="end_time" value="2019-06-19" />
+                </div>
+                <div id="place">
+                    <input id="input_place" type="text" placeholder="Place" autofocus>
+                </div>
+                <button class="complete_button"
+                    onclick="add($('#input_title').val(),$('#start_time').val(),$('#end_time').val(),$('#input_place').val(),'slide_delete',false)">complete</button>
+            </aside>
+        </div>
+        <!--todolist列表-->
+        <div class="todo_list">
+            <header class="header">
+                <h1>todos</h1>
+                <input id="search" type="text" placeholder="search" autofocus>
+                <button id="searchbutton" onclick="search()"></button>
+            </header>
+            <section>
+                <div id="slide_delete"></div>
+                <div id="d"></div>
+            </section>
+        </div>
+        <!--一些辅助功能的按钮-->
+        <div id="all" onclick="show_all()"><span>0</span>
+            <p>All</p>
+        </div>
+        <div id="completed" onclick="show_completed()"><span>0</span>
+            <p>Completed</p>
+        </div>
+        <div id="remain" onclick="show_remain()"><span>0</span>
+            <p>Left</p>
+        </div>
+        <div id="report" onclick="show_analysis()">Report</div>
+        <button class="quick" onclick="complete_all()">完成所有</button>
+        <button class="quick" onclick="uncomplete_all()">取消所有</button>
+        <button class="quick" onclick="delete_complete()">删除已完成</button>
+    </div>
+</body>
+
+</html>
